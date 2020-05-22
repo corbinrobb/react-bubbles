@@ -10,6 +10,8 @@ const ColorList = ({ colors, updateColors }) => {
   // console.log(colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
+  const [addingColor, setAddingColor] = useState(false);
+  const [newColor, setNewColor] = useState(initialColor);
 
   const editColor = color => {
     setEditing(true);
@@ -39,6 +41,18 @@ const ColorList = ({ colors, updateColors }) => {
       })
       .catch(err => console.log(err));
   };
+
+  const addColor = e => {
+    e.preventDefault();
+    axiosWithAuth()
+      .post('/colors', newColor)
+      .then(res => {
+        updateColors(res.data);
+      })
+      .catch(err => console.log(err));
+    setNewColor(initialColor);
+    setAddingColor(false);
+  }
 
   return (
     <div className="colors-wrap">
@@ -89,12 +103,43 @@ const ColorList = ({ colors, updateColors }) => {
           </label>
           <div className="button-row">
             <button type="submit">save</button>
-            <button onClick={() => setEditing(false)}>cancel</button>
+            <button onClick={() => {
+              setEditing(false);
+              setAddingColor(false);
+            }}>cancel</button>
           </div>
         </form>
       )}
+      { !addingColor && !editing && <button onClick={() => setAddingColor(true)}>Add New Color?</button>}
+      {addingColor && !editing && (<form onSubmit={addColor}>
+        <legend>Add color</legend>
+        <label>
+          color name:
+            <input
+            onChange={e =>
+              setNewColor({ ...newColor, color: e.target.value })
+            }
+            value={newColor.color}
+          />
+        </label>
+        <label>
+          hex code:
+            <input
+            onChange={e =>
+              setNewColor({
+                ...newColor,
+                code: { hex: e.target.value }
+              })
+            }
+            value={newColor.code.hex}
+          />
+        </label>
+        <div className="button-row">
+          <button type="submit">Add Color</button>
+          <button onClick={() => setAddingColor(false)}>cancel</button>
+        </div>
+      </form>)}
       <div className="spacer" />
-      {/* stretch - build another form here to add a color */}
     </div>
   );
 };
